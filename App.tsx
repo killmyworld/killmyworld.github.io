@@ -6,8 +6,10 @@ import Controls from "./components/Controls";
 import LyricsView from "./components/LyricsView";
 import PlaylistPanel from "./components/PlaylistPanel";
 import KeyboardShortcuts from "./components/KeyboardShortcuts";
+import ShortcutSettings from "./components/ShortcutSettings";
 import TopBar from "./components/TopBar";
 import SearchModal from "./components/SearchModal";
+import { ShortcutBinding, loadBindings } from "./services/shortcutSettings";
 import { usePlaylist } from "./hooks/usePlaylist";
 import { usePlayer } from "./hooks/usePlayer";
 import { useI18n } from "./hooks/useI18n";
@@ -55,6 +57,7 @@ const App: React.FC = () => {
 
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showShortcutSettings, setShowShortcutSettings] = useState(false);
   const [showVolumePopup, setShowVolumePopup] = useState(false);
   const [showSettingsPopup, setShowSettingsPopup] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -128,17 +131,7 @@ const App: React.FC = () => {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  // Global Search Shortcut (Registered directly via useEffect for simplicity, or could use useKeyboardScope with high priority)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setShowSearch((prev) => !prev);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  // Search shortcut is now handled by KeyboardShortcuts via custom bindings
 
   const [hasLoadedStaticMusic, setHasLoadedStaticMusic] = useState(false);
   const staticMusicLoadedRef = useRef(false);
@@ -385,6 +378,7 @@ const App: React.FC = () => {
         onSpeedChange={player.setSpeed}
         onToggleVolumeDialog={() => setShowVolumePopup((prev) => !prev)}
         onToggleSpeedDialog={() => setShowSettingsPopup((prev) => !prev)}
+        onToggleSearch={() => setShowSearch((prev) => !prev)}
       />
 
       <MediaSessionController
@@ -404,6 +398,13 @@ const App: React.FC = () => {
       <TopBar
         onFilesSelected={handleFileChange}
         onSearchClick={() => setShowSearch(true)}
+        onShortcutSettingsClick={() => setShowShortcutSettings(true)}
+      />
+
+      <ShortcutSettings
+        isOpen={showShortcutSettings}
+        onClose={() => setShowShortcutSettings(false)}
+        onBindingsChanged={() => {}}
       />
 
       {/* Search Modal - Always rendered to preserve state, visibility handled internally */}
